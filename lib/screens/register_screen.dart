@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import '../core/theme/app_theme.dart';
-import 'login.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? null
                         : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -119,8 +119,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: isDark
-                                  ? Colors.black.withOpacity(0.35)
-                                  : Colors.black.withOpacity(0.08),
+                                  ? Colors.black.withValues(alpha: 0.35)
+                                  : Colors.black.withValues(alpha: 0.08),
                               blurRadius: 14,
                               offset: const Offset(0, 6),
                             ),
@@ -164,7 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: _brandBlue.withOpacity(0.4),
+                                color: _brandBlue.withValues(alpha: 0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),

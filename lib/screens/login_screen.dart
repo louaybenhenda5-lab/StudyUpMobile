@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
-import 'Register.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,13 +10,29 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   bool _obscurePassword = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  late final AnimationController _enter;
+  late final Animation<double> _enterFade;
+
+  @override
+  void initState() {
+    super.initState();
+    _enter = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _enterFade = CurvedAnimation(parent: _enter, curve: Curves.easeOutCubic);
+    _enter.forward();
+  }
+
   @override
   void dispose() {
+    _enter.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -31,7 +47,19 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: colors.headerBackground,
       body: SafeArea(
-        child: Column(
+        child: AnimatedBuilder(
+          animation: _enterFade,
+          builder: (context, child) => Opacity(
+            opacity: _enterFade.value,
+            child: Transform.translate(
+              offset: Offset(0, (1 - _enter.value) * 12),
+              child: Transform.scale(
+                scale: 0.96 + 0.04 * _enter.value,
+                child: child,
+              ),
+            ),
+          ),
+          child: Column(
           children: [
             SizedBox(height: 10),
             // ---------- HEADER ----------
@@ -264,6 +292,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

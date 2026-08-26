@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Custom color tokens that aren't covered by ThemeData/ColorScheme directly.
 class AppColors extends ThemeExtension<AppColors> {
@@ -16,6 +17,9 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color avatarGradientStart;
   final Color avatarGradientEnd;
   final List<Color> buttonGradient;
+  final Color onboardingCircleBg;
+  final Color dotInactive;
+  final Color textPrimary;
 
   const AppColors({
     required this.headerBackground,
@@ -32,6 +36,9 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.avatarGradientStart,
     required this.avatarGradientEnd,
     required this.buttonGradient,
+    required this.onboardingCircleBg,
+    required this.dotInactive,
+    required this.textPrimary,
   });
 
   static const light = AppColors(
@@ -49,6 +56,9 @@ class AppColors extends ThemeExtension<AppColors> {
     avatarGradientStart: Color(0xFFEFF4FD),
     avatarGradientEnd: Color(0xFFD8E6FB),
     buttonGradient: [Color(0xFF5AA3FB), Color(0xFF2E7CF6)],
+    onboardingCircleBg: Color(0xFFE9EEF8),
+    dotInactive: Color(0xFFDDE3EE),
+    textPrimary: Color(0xFF1B2233),
   );
 
   static const dark = AppColors(
@@ -66,6 +76,9 @@ class AppColors extends ThemeExtension<AppColors> {
     avatarGradientStart: Color(0xFF232E48),
     avatarGradientEnd: Color(0xFF1A2338),
     buttonGradient: [Color(0xFF5AA3FB), Color(0xFF2E7CF6)],
+    onboardingCircleBg: Color(0xFF1B2740),
+    dotInactive: Color(0xFF2B3550),
+    textPrimary: Colors.white,
   );
 
   @override
@@ -84,6 +97,9 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? avatarGradientStart,
     Color? avatarGradientEnd,
     List<Color>? buttonGradient,
+    Color? onboardingCircleBg,
+    Color? dotInactive,
+    Color? textPrimary,
   }) {
     return AppColors(
       headerBackground: headerBackground ?? this.headerBackground,
@@ -100,6 +116,9 @@ class AppColors extends ThemeExtension<AppColors> {
       avatarGradientStart: avatarGradientStart ?? this.avatarGradientStart,
       avatarGradientEnd: avatarGradientEnd ?? this.avatarGradientEnd,
       buttonGradient: buttonGradient ?? this.buttonGradient,
+      onboardingCircleBg: onboardingCircleBg ?? this.onboardingCircleBg,
+      dotInactive: dotInactive ?? this.dotInactive,
+      textPrimary: textPrimary ?? this.textPrimary,
     );
   }
 
@@ -126,6 +145,10 @@ class AppColors extends ThemeExtension<AppColors> {
       avatarGradientEnd:
       Color.lerp(avatarGradientEnd, other.avatarGradientEnd, t)!,
       buttonGradient: buttonGradient,
+      onboardingCircleBg:
+      Color.lerp(onboardingCircleBg, other.onboardingCircleBg, t)!,
+      dotInactive: Color.lerp(dotInactive, other.dotInactive, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
     );
   }
 }
@@ -144,10 +167,12 @@ class AppTheme {
       seedColor: _brandBlue,
       brightness: Brightness.light,
     ),
-    fontFamily: 'Roboto',
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Color(0xFF1B2233)),
-      bodyMedium: TextStyle(color: Color(0xFF1B2233)),
+    fontFamily: GoogleFonts.poppins().fontFamily,
+    textTheme: GoogleFonts.poppinsTextTheme(
+      const TextTheme(
+        bodyLarge: TextStyle(color: Color(0xFF1B2233)),
+        bodyMedium: TextStyle(color: Color(0xFF1B2233)),
+      ),
     ),
     extensions: const [AppColors.light],
   );
@@ -161,10 +186,12 @@ class AppTheme {
       seedColor: _brandBlue,
       brightness: Brightness.dark,
     ),
-    fontFamily: 'Roboto',
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white),
+    fontFamily: GoogleFonts.poppins().fontFamily,
+    textTheme: GoogleFonts.poppinsTextTheme(
+      const TextTheme(
+        bodyLarge: TextStyle(color: Colors.white),
+        bodyMedium: TextStyle(color: Colors.white),
+      ),
     ),
     extensions: const [AppColors.dark],
   );

@@ -1,25 +1,35 @@
-import 'package:StudyUp/main.dart';
-import 'package:StudyUp/screens/Login.dart';
-import 'package:StudyUp/screens/Splash.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:studyUp/main.dart';
+import 'package:studyUp/screens/login_screen.dart';
+import 'package:studyUp/screens/onboarding_screen.dart';
+import 'package:studyUp/screens/welcome_screen.dart';
+
+import 'test_utils.dart';
 
 void main() {
-  testWidgets('splash screen plays then navigates to the login screen',
+  testWidgets('welcome shows then navigates to the onboarding flow on Get Started',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    // The animated splash is the initial screen.
-    expect(find.byType(SplashScreen), findsOneWidget);
+    // The welcome screen is the initial screen.
+    expect(find.byType(WelcomeScreen), findsOneWidget);
+    expect(find.byType(OnboardingScreen), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.tap(find.byKey(const Key('get-started-btn')));
+    await pumpUntil(
+      tester,
+      () => find.byType(OnboardingScreen).evaluate().isNotEmpty,
+    );
+    await pumpUntil(
+      tester,
+      () => find.byType(WelcomeScreen).evaluate().isEmpty,
+    );
+
+    // Welcome is gone and the onboarding screen is visible.
+    expect(find.byType(WelcomeScreen), findsNothing);
+    expect(find.byType(OnboardingScreen), findsOneWidget);
     expect(find.byType(LoginScreen), findsNothing);
-
-    // Fast-forward past the 3s splash animation using the test clock.
-    await tester.pump(const Duration(milliseconds: 3100));
-
-    // Let the fade/slide transition to Login complete.
-    await tester.pumpAndSettle();
-
-    // Splash is gone and the Login screen is visible.
-    expect(find.byType(SplashScreen), findsNothing);
-    expect(find.byType(LoginScreen), findsOneWidget);
   });
 }
