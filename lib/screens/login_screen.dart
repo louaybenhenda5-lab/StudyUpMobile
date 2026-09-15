@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/theme/app_theme.dart';
+import '../providers/UserViewModel.dart';
 import 'register_screen.dart';
+import 'student_schedule_screen.dart';
+import 'teacher_tabs_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +19,16 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscurePassword = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  String? _emailError;
+  String? _passwordError;
+  String? _loginError;
+  bool _loginButtonPressed = false;
+  bool _studentButtonPressed = false;
+  bool _isLoggingIn = false;
+
+  static const _brandBlue = Color(0xFF2E7CF6);
 
   late final AnimationController _enter;
   late final Animation<double> _enterFade;
@@ -35,6 +49,8 @@ class _LoginScreenState extends State<LoginScreen>
     _enter.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -43,6 +59,7 @@ class _LoginScreenState extends State<LoginScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colors = context.appColors;
     final textColor = isDark ? Colors.white : const Color(0xFF1B2233);
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
       backgroundColor: colors.headerBackground,
@@ -61,10 +78,11 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           child: Column(
           children: [
-            SizedBox(height: 10),
-            // ---------- HEADER ----------
-            Expanded(
-              flex: 42,
+            if (!keyboardOpen) ...[
+              SizedBox(height: 10),
+              // ---------- HEADER ----------
+              Expanded(
+                flex: 42,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -169,10 +187,11 @@ class _LoginScreenState extends State<LoginScreen>
                 ],
               ),
             ),
+            ],
 
             // ---------- FORM CARD ----------
             Expanded(
-              flex: 58,
+              flex: keyboardOpen ? 1 : 58,
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -185,6 +204,18 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (_loginError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Text(
+                            _loginError!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       Text(
                         'Email or Phone',
                         style: TextStyle(
@@ -200,6 +231,13 @@ class _LoginScreenState extends State<LoginScreen>
                         icon: Icons.email_outlined,
                         colors: colors,
                         textColor: textColor,
+                        errorText: _emailError,
+                        focusNode: _emailFocus,
+                        activeColor: _brandBlue,
+                        onChanged: (_) {
+                          if (_emailError != null) setState(() => _emailError = null);
+                          if (_loginError != null) setState(() => _loginError = null);
+                        },
                       ),
                       const SizedBox(height: 20),
                       Text(
@@ -218,6 +256,13 @@ class _LoginScreenState extends State<LoginScreen>
                         colors: colors,
                         textColor: textColor,
                         obscure: _obscurePassword,
+                        errorText: _passwordError,
+                        focusNode: _passwordFocus,
+                        activeColor: _brandBlue,
+                        onChanged: (_) {
+                          if (_passwordError != null) setState(() => _passwordError = null);
+                          if (_loginError != null) setState(() => _loginError = null);
+                        },
                         suffix: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -249,6 +294,8 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       const SizedBox(height: 20),
                       _buildLoginButton(colors),
+                      const SizedBox(height: 16),
+                      _buildStudentButton(colors),
                       const SizedBox(height: 24),
                       Container(
                         width: double.infinity,
@@ -306,51 +353,207 @@ class _LoginScreenState extends State<LoginScreen>
     required Color textColor,
     bool obscure = false,
     Widget? suffix,
+    String? errorText,
+    ValueChanged<String>? onChanged,
+    FocusNode? focusNode,
+    Color? activeColor,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.inputBackground,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.inputBorder),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscure,
-        style: TextStyle(color: textColor, fontSize: 14),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: colors.inputHint, fontSize: 14),
-          prefixIcon: Icon(icon, color: colors.inputHint, size: 20),
-          suffixIcon: suffix,
-          border: InputBorder.none,
-          contentPadding:
-          const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListenableBuilder(
+          listenable: focusNode ?? AlwaysStoppedAnimation(0),
+          builder: (context, _) {
+            final hasFocus = focusNode?.hasFocus ?? false;
+            final borderColor = errorText != null
+                ? Colors.red
+                : hasFocus
+                    ? (activeColor ?? colors.buttonGradient[1])
+                    : colors.inputBorder;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: colors.inputBackground,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: borderColor),
+              ),
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                obscureText: obscure,
+                style: TextStyle(color: textColor, fontSize: 14),
+                onChanged: onChanged,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: TextStyle(color: colors.inputHint, fontSize: 14),
+                  prefixIcon: Icon(icon, color: colors.inputHint, size: 20),
+                  suffixIcon: suffix,
+                  border: InputBorder.none,
+                  contentPadding:
+                  const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+                ),
+              ),
+            );
+          },
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: Text(
+              errorText,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 
   Widget _buildLoginButton(AppColors colors) {
     return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          gradient: LinearGradient(
-            colors: colors.buttonGradient,
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
+      onTapDown: (_) => setState(() => _loginButtonPressed = true),
+      onTapUp: (_) => setState(() => _loginButtonPressed = false),
+      onTapCancel: () => setState(() => _loginButtonPressed = false),
+      onTap: () async {
+        if (_isLoggingIn) return;
+        final email = _emailController.text.trim();
+        final password = _passwordController.text;
+
+        setState(() {
+          _loginError = null;
+          _emailError = email.isEmpty ? 'Email is required' : null;
+          _passwordError = password.isEmpty ? 'Password is required' : null;
+        });
+        if (_emailError != null || _passwordError != null) return;
+
+        setState(() => _isLoggingIn = true);
+        try {
+          final userViewModel = context.read<UserViewModel>();
+          final success = await userViewModel.login(
+            _emailController.text.trim(),
+            _passwordController.text,
+          );
+          if (!mounted) return;
+          if (success) {
+            // Teacher area only: verify backend role from GET /me.
+            if (userViewModel.isTeacher) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        const TeacherTabsScreen(initialIndex: 0)),
+              );
+            } else {
+              // Do not leave a non-teacher token behind.
+              await userViewModel.logout();
+              if (!mounted) return;
+              setState(() => _loginError =
+                  'This section is for teachers. Please use the correct app.');
+            }
+          } else {
+            setState(() => _loginError = userViewModel.error);
+          }
+        } finally {
+          if (mounted) setState(() => _isLoggingIn = false);
+        }
+      },
+      child: AnimatedScale(
+        scale: _loginButtonPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            gradient: LinearGradient(
+              colors: colors.buttonGradient,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            boxShadow: _loginButtonPressed
+                ? [
+              BoxShadow(
+                color: _brandBlue.withValues(alpha: 0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ]
+                : null,
+          ),
+          child: Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              transitionBuilder: (child, animation) => ScaleTransition(
+                scale: animation,
+                child: FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+              ),
+              child: _isLoggingIn
+                  ? const SizedBox(
+                      key: ValueKey('login-spinner'),
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Login',
+                      key: ValueKey('login-label'),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+            ),
           ),
         ),
-        child: const Center(
-          child: Text(
-            'Login',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
+      ),
+    );
+  }
+
+  Widget _buildStudentButton(AppColors colors) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _studentButtonPressed = true),
+      onTapUp: (_) => setState(() => _studentButtonPressed = false),
+      onTapCancel: () => setState(() => _studentButtonPressed = false),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const StudentScheduleScreen(),
+          ),
+        );
+      },
+      child: AnimatedScale(
+        scale: _studentButtonPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: colors.buttonGradient[1], width: 1.5),
+            boxShadow: _studentButtonPressed
+                ? [
+              BoxShadow(
+                color: _brandBlue.withValues(alpha: 0.15),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              'Continue as Student',
+              style: TextStyle(
+                color: colors.buttonGradient[1],
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
             ),
           ),
         ),
